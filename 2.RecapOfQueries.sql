@@ -53,10 +53,20 @@ group by productLine
 # Order the result set by product in descending order and orderLineNumber in ascending order.
 # (orderdetails)
 
+select productCode,orderLineNumber,avg(priceEach) as avg_priceEach
+from orderdetails
+group by productCode,orderLineNumber
+having max(priceEach) > 100
+order by productCode desc, orderLineNumber asc
 
 
 #Get a comma separated list of customerNames for every country.
 # Order the result set by country in descending order. (customers)
+
+select country, group_concat(customerName) as customerNames
+from customers
+group by country
+order by country desc
 
 
 /*
@@ -64,15 +74,24 @@ Get customer name, phone number and column called state_or_address_line2_or_coun
 will return first non null value out of these three columns (state, addressLine2, country)
 where credit limit is greater that 20000 and less than 100000; (customers)*/
 
-
+select customerName, phone, coalesce(state,addressLine2,country) as state_or_address_line2_or_country
+from customers
+where creditLimit > 20000 and creditLimit < 100000
 
 # Get customer number,
 # if amount is greater than 10000 divide it by 100 for all payments
 # where checkNumber starts with 'HQ'; (payments)
 
+select customerNumber,IF(amount>10000,amount/100,amount) as adjusted_amount
+from payments
+where checkNumber like 'HQ%'
 
 #Get city, phone number and addressLine2 from offices.
 # If state is null return 'N/A' for all offices where country is USA (offices)
+
+select city ,phone,addressLine2,COALESCE(state,'N/A') AS state
+from offices
+where country = 'USA'
 
 
 
@@ -80,20 +99,34 @@ where credit limit is greater that 20000 and less than 100000; (customers)*/
 #We are interested just in orders where shippedDate is between 2003-01-25 and 2003-03-20.
 # (orders)
 
+select * from orders
+where comments is not null and status = 'Shipped' and shippedDate between '2003-01-25' and '2003-03-20'
 
 #For all products calculate how much retailer will earn money by
 # subracting buy price from MSRP where product code starts with 'S12' OR 'S18' (products)
+
+select productCode,(MSRP-buyPrice) as retailer_earnings
+from products
+where productCode like 'S12%' or productCode like 'S18%'
 
 #For every product in order details table get product code and calculate subtotal (quantity * price)
 # for every product order where quantity is greater than 20 and price is less than 120.
 # Round subtotal on two decimal places. (orderdetails).
 
+select productCode,round((quantityOrdered*priceEach),2)as subtotal
+from orderdetails
+where quantityOrdered > 20 and priceEach < 120
 
 #Get first and last name, reportsTo and job title and email of all employees whose job
 # title is President or VP Sales or Sales Rep or those who reports to office code 1.
 # In email replace 'classicmodelcars.com' with 'ibu.edu.ba'.
 # Result set should be order by job title in descending order. (employees)
 
+select firstName,lastName,reportsTo,jobTitle,replace(email,'classicmodelcars.com','ibu.edu.ba') as email
+from employees
+where jobTitle in ('President','VP Sales','Sales Rep','VP Marketing') or reportsTo = 1
+order by jobTitle desc
 
 #Get all product lines where productLine contains 'Cars' in its name. (productlines)
-
+select * from productlines
+where productLine like '%Cars%'
